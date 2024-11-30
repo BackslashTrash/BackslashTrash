@@ -42,7 +42,6 @@ public class Main extends JFrame{
     private int P2Points;
     private int winPoints = 1;
     private boolean bestOfThree;
-
     public Main() {
         setContentPane(Game);
         setBounds(0, 0, 1000, 1000);
@@ -51,7 +50,6 @@ public class Main extends JFrame{
         setTitle("Rock Paper Scissors");
         initialize();
         ChooseGame.setFont(new Font("Bahnschrift", Font.PLAIN, 16));
-
         quitGameButton.addActionListener(_ -> {
             int input = JOptionPane.showConfirmDialog(null,"Confirm exiting program?","Warning", JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE);
             if (input == JOptionPane.YES_OPTION) {
@@ -62,8 +60,10 @@ public class Main extends JFrame{
             GameMode = 0;
             P1SetVisible();
             MenuSetInvisible();
-            PointsText1.setVisible(true);
-            PointsText2.setVisible(true);
+            if (bestOfThree) {
+                PointsText1.setVisible(true);
+                PointsText2.setVisible(true);
+            }
             setPlayerPoints();
             bestOfThreeButton.setVisible(false);
         });
@@ -71,14 +71,17 @@ public class Main extends JFrame{
             GameMode = 2;
             P1SetVisible();
             MenuSetInvisible();
-            PointsText1.setVisible(true);
-            PointsText2.setVisible(true);
+            if (bestOfThree) {
+                PointsText1.setVisible(true);
+                PointsText2.setVisible(true);
+            }
             setPlayerPoints();
             bestOfThreeButton.setVisible(false);
         });
         restartButton.addActionListener(_ -> initialize());
         rockButton.addActionListener(_ -> {
-        if (GameMode == 0){
+            winnerMessage.setVisible(false);
+            if (GameMode == 0){
             if (P1Points < winPoints && aiPoints < winPoints) {
                 player1 = rock;
                 if (AiChoice == 0) {
@@ -105,6 +108,7 @@ public class Main extends JFrame{
         }
         });
         paperButton.addActionListener(_ -> {
+            winnerMessage.setVisible(false);
             if (GameMode == 0){
                 if (P1Points < winPoints && aiPoints < winPoints) {
                     player1 = paper;
@@ -131,6 +135,7 @@ public class Main extends JFrame{
             }
         });
         scissorsButton.addActionListener(_ -> {
+            winnerMessage.setVisible(false);
             if (GameMode == 0){
                 if (P1Points < winPoints && aiPoints < winPoints) {
                     player1 = scissors;
@@ -156,7 +161,7 @@ public class Main extends JFrame{
                 P2SetVisible();
             }
         });
-        rockButton1.addActionListener(_ -> {
+        rockButton1.addActionListener(_ -> {   //player 2's rock button
             player2 = rock;
             if(GameMode == 2) {
                 if (P1Points < winPoints && P2Points < winPoints) {
@@ -169,17 +174,22 @@ public class Main extends JFrame{
                     } else {
                         VsPlayerGameOutcome = 2;
                     }
-                    setPlayerPoints();
-                    P1SetVisible();
-                    P2SetInvisible();
+                    if (bestOfThree) {
+                        setPlayerPoints();
+                        P1SetVisible();
+                        P2SetInvisible();
+                        displayVsPlayerOutcome();
+                        displayBestOfThreeOutcome();
+                    } else {
+                        P2SetInvisible();
+                    }
                     displayVsPlayerOutcome();
-                    displayBestOfThreeOutcome();
                 } else {
                     GameMode = -1;
                 }
             }
         });
-        paperButton1.addActionListener(_ -> {
+        paperButton1.addActionListener(_ -> { // player 2's paper button
             player2 = paper;
             if(GameMode == 2) {
                 if (P1Points < winPoints && P2Points < winPoints) {
@@ -192,17 +202,22 @@ public class Main extends JFrame{
                         VsPlayerGameOutcome = 1;
                         P2Points += 1;
                     }
-                    setPlayerPoints();
-                    P1SetVisible();
-                    P2SetInvisible();
+                    if (bestOfThree) {
+                        setPlayerPoints();
+                        P1SetVisible();
+                        P2SetInvisible();
+                        displayVsPlayerOutcome();
+                        displayBestOfThreeOutcome();
+                    } else {
+                        P2SetInvisible();
+                    }
                     displayVsPlayerOutcome();
-                    displayBestOfThreeOutcome();
                 } else {
                     GameMode = -1;
                 }
             }
         });
-        scissorsButton1.addActionListener(_ -> {
+        scissorsButton1.addActionListener(_ -> { // player 2's scissors button
             player2 = scissors;
             if (GameMode == 2) {
                 if (P1Points < winPoints && P2Points < winPoints) {
@@ -215,11 +230,16 @@ public class Main extends JFrame{
                         VsPlayerGameOutcome = 1;
                         P2Points += 1;
                     }
-                    setPlayerPoints();
-                    P1SetVisible();
-                    P2SetInvisible();
+                    if (bestOfThree) {
+                        setPlayerPoints();
+                        P1SetVisible();
+                        P2SetInvisible();
+                        displayVsPlayerOutcome();
+                        displayBestOfThreeOutcome();
+                    } else {
+                        P2SetInvisible();
+                    }
                     displayVsPlayerOutcome();
-                    displayBestOfThreeOutcome();
                 } else {
                     GameMode = -1;
                 }
@@ -236,7 +256,7 @@ public class Main extends JFrame{
             tutorialText.setFont(new Font("Bahnschrift", Font.PLAIN, 24));
             tutorialSteps += 1;
             MenuSetInvisible();
-            switch (tutorialSteps) {
+            switch (tutorialSteps) {        //tutorial
                 case 1 -> tutorialText.setText("There are 3 options in rock paper scissors");
                 case 2 -> tutorialText.setText("Rock beats scissors, scissors beats paper, and paper beats rock.");
                 case 3 -> tutorialText.setText("If both player played the same, it's a draw.");
@@ -244,7 +264,7 @@ public class Main extends JFrame{
                 case 5 -> initialize();
             }
         });
-        bestOfThreeButton.addActionListener(_ -> {
+        bestOfThreeButton.addActionListener(_ -> {  //allows the player to play best of 3
             if (!bestOfThree) {
                 bestOfThreeButton.setText("Best of Three");
                 bestOfThree = true;
@@ -344,7 +364,7 @@ public class Main extends JFrame{
             case 2 -> winnerMessage.setText(Player1_Chose + " " + player1 + ", " + player2_Chose + " " +player2 + ", " + itsADraw);
         }
     }
-    private void setPlayerPoints() {
+    private void setPlayerPoints() {            //displays each player's scores
         if (GameMode == 0){
             PointsText1.setText("Ai's points: " + aiPoints);
             PointsText2.setText("Your points:" + P1Points);
@@ -353,7 +373,7 @@ public class Main extends JFrame{
             PointsText2.setText("Player 2's points: " + P2Points);
         }
     }
-    private void displayBestOfThreeOutcome() {
+    private void displayBestOfThreeOutcome() {              //shows the final outcome of the bo3
         if (GameMode == 0 && bestOfThree) {
             if (aiPoints > P1Points && aiPoints == winPoints) {
                 bestOfThreeWinnerText.setVisible(true);
