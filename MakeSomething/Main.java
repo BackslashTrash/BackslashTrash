@@ -1,6 +1,5 @@
 import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.*;
 import java.util.*;
 public class Main extends JFrame{
     private JButton vsAIButton;
@@ -18,10 +17,16 @@ public class Main extends JFrame{
     private JButton scissorsButton1;
     private JButton restartButton;
     private JLabel winnerMessage;
+    private JButton tutorial;
+    private JLabel tutorialText;
+    private JButton bestOfThreeButton;
+    private JLabel PointsText1;
+    private JLabel PointsText2;
+    private JLabel bestOfThreeWinnerText;
     private int AiChoice;
     private String AiChoiceText;
-    private final String Player1_Wins = "Player1 wins!!";
-    private final String Player1_Chose = "Player1 chose";
+    private final String Player1_Wins = "Player 1 wins this round!!";
+    private final String Player1_Chose = "Player 1 chose";
     private final String rock = "rock";
     private final String paper = "paper";
     private final String scissors = "scissors";
@@ -31,6 +36,13 @@ public class Main extends JFrame{
     private String player2;
     private int VsAiGameOutcome;
     private int VsPlayerGameOutcome;
+    private int tutorialSteps;
+    private int aiPoints;
+    private int P1Points;
+    private int P2Points;
+    private int winPoints = 1;
+    private boolean bestOfThree;
+
     public Main() {
         setContentPane(Game);
         setBounds(0, 0, 1000, 1000);
@@ -38,149 +50,209 @@ public class Main extends JFrame{
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setTitle("Rock Paper Scissors");
         initialize();
-        quitGameButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                int input = JOptionPane.showConfirmDialog(null,"Confirm exiting program?","Warning", JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE);
-                if (input == JOptionPane.YES_OPTION) {
-                    dispose();
-                }
+        ChooseGame.setFont(new Font("Bahnschrift", Font.PLAIN, 16));
+
+        quitGameButton.addActionListener(_ -> {
+            int input = JOptionPane.showConfirmDialog(null,"Confirm exiting program?","Warning", JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE);
+            if (input == JOptionPane.YES_OPTION) {
+                dispose();
             }
         });
-        vsAIButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                GameMode = 0;
-                P1SetVisible();
-                MenuSetInvisible();
-            }
+        vsAIButton.addActionListener(_ -> {
+            GameMode = 0;
+            P1SetVisible();
+            MenuSetInvisible();
+            PointsText1.setVisible(true);
+            PointsText2.setVisible(true);
+            setPlayerPoints();
+            bestOfThreeButton.setVisible(false);
         });
-        vsPlayerButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                GameMode = 2;
-                P1SetVisible();
-                MenuSetInvisible();
-            }
+        vsPlayerButton.addActionListener(_ -> {
+            GameMode = 2;
+            P1SetVisible();
+            MenuSetInvisible();
+            PointsText1.setVisible(true);
+            PointsText2.setVisible(true);
+            setPlayerPoints();
+            bestOfThreeButton.setVisible(false);
         });
-        restartButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-            initialize();
-            }
-        });
-        rockButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-            if (GameMode == 0){
+        restartButton.addActionListener(_ -> initialize());
+        rockButton.addActionListener(_ -> {
+        if (GameMode == 0){
+            if (P1Points < winPoints && aiPoints < winPoints) {
                 player1 = rock;
                 if (AiChoice == 0) {
                     VsAiGameOutcome = 2;
                 } else if (AiChoice == 1) {
                     VsAiGameOutcome = 0;
+                    aiPoints += 1;
+                    setPlayerPoints();
                 } else {
                     VsAiGameOutcome = 1;
+                    P1Points += 1;
+                    setPlayerPoints();
                 }
                 displayVsAiOutcome();
+                displayBestOfThreeOutcome();
+                Ai_Guess();
+            } else {
                 GameMode = -1;
-            } else if(GameMode == 2){
-                player1 = rock;
+            }
+        } else if(GameMode == 2){
+            player1 = rock;
+            P1SetInvisible();
+            P2SetVisible();
+        }
+        });
+        paperButton.addActionListener(_ -> {
+            if (GameMode == 0){
+                if (P1Points < winPoints && aiPoints < winPoints) {
+                    player1 = paper;
+                    if (AiChoice == 0) {
+                        VsAiGameOutcome = 1;
+                        P1Points += 1;
+                    } else if (AiChoice == 1) {
+                        VsAiGameOutcome = 2;
+                    } else {
+                        VsAiGameOutcome = 0;
+                        aiPoints += 1;
+                    }
+                    setPlayerPoints();
+                    displayVsAiOutcome();
+                    displayBestOfThreeOutcome();
+                    Ai_Guess();
+                } else {
+                    GameMode = -1;
+                }
+            } else if (GameMode == 2){
+                player1 = paper;
                 P1SetInvisible();
                 P2SetVisible();
             }
-            }
         });
-        paperButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (GameMode == 0){
-                    player1 = paper;
-                    if (AiChoice == 0) {
-                        VsAiGameOutcome = 1;
-                    } else if (AiChoice == 1) {
-                        VsAiGameOutcome = 2;
-                    } else {
-                        VsAiGameOutcome = 0;
-                    }
-                    displayVsAiOutcome();
-                    GameMode = -1;
-                } else if (GameMode == 2){
-                    player1 = paper;
-                    P1SetInvisible();
-                    P2SetVisible();
-                }
-            }
-        });
-        scissorsButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (GameMode == 0){
+        scissorsButton.addActionListener(_ -> {
+            if (GameMode == 0){
+                if (P1Points < winPoints && aiPoints < winPoints) {
                     player1 = scissors;
                     if (AiChoice == 0) {
                         VsAiGameOutcome = 0;
+                        aiPoints += 1;
                     } else if (AiChoice == 1) {
                         VsAiGameOutcome = 1;
+                        P1Points += 1;
                     } else {
                         VsAiGameOutcome = 2;
                     }
+                    setPlayerPoints();
                     displayVsAiOutcome();
+                    displayBestOfThreeOutcome();
+                    Ai_Guess();
+                } else {
                     GameMode = -1;
-                } else if (GameMode == 2){
-                    player1 = scissors;
-                    P1SetInvisible();
-                    P2SetVisible();
                 }
+            } else if (GameMode == 2){
+                player1 = scissors;
+                P1SetInvisible();
+                P2SetVisible();
             }
         });
-        rockButton1.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                player2 = rock;
-                if(GameMode == 2) {
+        rockButton1.addActionListener(_ -> {
+            player2 = rock;
+            if(GameMode == 2) {
+                if (P1Points < winPoints && P2Points < winPoints) {
                     if (player1.equals(paper)) {
                         VsPlayerGameOutcome = 0;
+                        P1Points += 1;
                     } else if (player1.equals(scissors)) {
                         VsPlayerGameOutcome = 1;
+                        P2Points +=1;
                     } else {
                         VsPlayerGameOutcome = 2;
                     }
+                    setPlayerPoints();
+                    P1SetVisible();
+                    P2SetInvisible();
                     displayVsPlayerOutcome();
+                    displayBestOfThreeOutcome();
+                } else {
                     GameMode = -1;
                 }
             }
         });
-        paperButton1.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                player2 = paper;
-                if(GameMode == 2) {
+        paperButton1.addActionListener(_ -> {
+            player2 = paper;
+            if(GameMode == 2) {
+                if (P1Points < winPoints && P2Points < winPoints) {
                     if (player1.equals(paper)) {
                         VsPlayerGameOutcome = 2;
                     } else if (player1.equals(scissors)) {
                         VsPlayerGameOutcome = 0;
+                        P1Points += 1;
                     } else {
                         VsPlayerGameOutcome = 1;
+                        P2Points += 1;
                     }
+                    setPlayerPoints();
+                    P1SetVisible();
+                    P2SetInvisible();
                     displayVsPlayerOutcome();
+                    displayBestOfThreeOutcome();
+                } else {
                     GameMode = -1;
                 }
             }
         });
-        scissorsButton1.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                player2 = scissors;
-                if (GameMode == 2) {
+        scissorsButton1.addActionListener(_ -> {
+            player2 = scissors;
+            if (GameMode == 2) {
+                if (P1Points < winPoints && P2Points < winPoints) {
                     if (player1.equals(rock)) {
                         VsPlayerGameOutcome = 0;
+                        P1Points +=1;
                     } else if (player1.equals(scissors)) {
                         VsPlayerGameOutcome = 2;
                     } else {
                         VsPlayerGameOutcome = 1;
+                        P2Points += 1;
                     }
+                    setPlayerPoints();
+                    P1SetVisible();
+                    P2SetInvisible();
                     displayVsPlayerOutcome();
+                    displayBestOfThreeOutcome();
+                } else {
                     GameMode = -1;
                 }
+            }
+        });
+        tutorial.addActionListener(_ -> {
+            bestOfThreeButton.setVisible(false);
+            P1SetInvisible();
+            P2SetInvisible();
+            winnerMessage.setVisible(false);
+            tutorialText.setVisible(true);
+            tutorial.setText("Next");
+            tutorialText.setSize(105,61);
+            tutorialText.setFont(new Font("Bahnschrift", Font.PLAIN, 24));
+            tutorialSteps += 1;
+            MenuSetInvisible();
+            switch (tutorialSteps) {
+                case 1 -> tutorialText.setText("There are 3 options in rock paper scissors");
+                case 2 -> tutorialText.setText("Rock beats scissors, scissors beats paper, and paper beats rock.");
+                case 3 -> tutorialText.setText("If both player played the same, it's a draw.");
+                case 4 -> tutorialText.setText("Click on 'Best of one' button to change to best of three");
+                case 5 -> initialize();
+            }
+        });
+        bestOfThreeButton.addActionListener(_ -> {
+            if (!bestOfThree) {
+                bestOfThreeButton.setText("Best of Three");
+                bestOfThree = true;
+                winPoints = 2;
+            } else {
+                bestOfThreeButton.setText("Best of One");
+                bestOfThree = false;
+                winPoints = 1;
             }
         });
     }
@@ -196,6 +268,19 @@ public class Main extends JFrame{
         player1 = null;
         player2 = null;
         winnerMessage.setText(null);
+        tutorial.setText("How to play");
+        tutorialText.setVisible(false);
+        tutorialSteps = 0;
+        bestOfThreeButton.setText("Best of One");
+        bestOfThreeButton.setVisible(true);
+        bestOfThree = false;
+        aiPoints = 0;
+        P1Points = 0;
+        P2Points = 0;
+        PointsText1.setVisible(false);
+        PointsText2.setVisible(false);
+        winPoints = 1;
+        bestOfThreeWinnerText.setVisible(false);
     }
     private void P1SetVisible() {
         rockButton.setVisible(true);
@@ -227,6 +312,7 @@ public class Main extends JFrame{
         vsAIButton.setVisible(false);
         vsPlayerButton.setVisible(false);
     }
+
     private void Ai_Guess() {
         Random rand = new Random();
         AiChoice = rand.nextInt(3);    // 0 = rock, 1 = paper, 2 = scissors
@@ -239,25 +325,51 @@ public class Main extends JFrame{
         }
     }
     private void displayVsAiOutcome() { // 0 = ai wins, 1 = player1 wins, 2 = draw
+        winnerMessage.setVisible(true);
         String ai_Chose = "Ai chose";
-        if (VsAiGameOutcome == 0) {
-            String ai_Wins = "Ai wins.";
-            winnerMessage.setText(ai_Chose + " " + AiChoiceText + ", " + Player1_Chose + " " +player1 + ", " + ai_Wins);
-        } else if (VsAiGameOutcome == 1) {
-            winnerMessage.setText(ai_Chose + " " + AiChoiceText + ", " + Player1_Chose + " " +player1 + ", " + Player1_Wins);
-        } else {
-            winnerMessage.setText(ai_Chose + " " + AiChoiceText + ", " + Player1_Chose + " " +player1 + ", " + itsADraw);
+        String ai_Wins = "Ai wins this round.";
+        switch (VsAiGameOutcome) {
+            case 0 -> winnerMessage.setText(ai_Chose + " " + AiChoiceText + ", " + Player1_Chose + " " +player1 + ", " + ai_Wins);
+            case 1 -> winnerMessage.setText(ai_Chose + " " + AiChoiceText + ", " + Player1_Chose + " " +player1 + ", " + Player1_Wins);
+            case 2 -> winnerMessage.setText(ai_Chose + " " + AiChoiceText + ", " + Player1_Chose + " " +player1 + ", " + itsADraw);
         }
     }
     private void displayVsPlayerOutcome() { // 0 = player1 wins, 1 = player2 wins, 2 = draw
-        String player2_Chose = "Player2 chose";
-        if (VsPlayerGameOutcome == 0) {
-            winnerMessage.setText(Player1_Chose + " " + player1 + ", " + player2_Chose + " " +player2 + ", " + Player1_Wins);
-        } else if (VsPlayerGameOutcome == 1) {
-            String player2_Wins = "Player2 wins!!";
-            winnerMessage.setText(Player1_Chose + " " + player1 + ", " + player2_Chose + " " +player2 + ", " + player2_Wins);
-        } else {
-            winnerMessage.setText(Player1_Chose + " " + player1 + ", " + player2_Chose + " " +player2 + ", " + itsADraw);
+        winnerMessage.setVisible(true);
+        String player2_Chose = "Player 2 chose";
+        String player2_Wins = "Player 2 wins this round!!";
+        switch (VsPlayerGameOutcome) {
+            case 0 -> winnerMessage.setText(Player1_Chose + " " + player1 + ", " + player2_Chose + " " +player2 + ", " + Player1_Wins);
+            case 1 -> winnerMessage.setText(Player1_Chose + " " + player1 + ", " + player2_Chose + " " +player2 + ", " + player2_Wins);
+            case 2 -> winnerMessage.setText(Player1_Chose + " " + player1 + ", " + player2_Chose + " " +player2 + ", " + itsADraw);
+        }
+    }
+    private void setPlayerPoints() {
+        if (GameMode == 0){
+            PointsText1.setText("Ai's points: " + aiPoints);
+            PointsText2.setText("Your points:" + P1Points);
+        } else if (GameMode == 2) {
+            PointsText1.setText("Player 1's points: " + P1Points);
+            PointsText2.setText("Player 2's points: " + P2Points);
+        }
+    }
+    private void displayBestOfThreeOutcome() {
+        if (GameMode == 0 && bestOfThree) {
+            if (aiPoints > P1Points && aiPoints == winPoints) {
+                bestOfThreeWinnerText.setVisible(true);
+                bestOfThreeWinnerText.setText("Ai have " + aiPoints + " points, you have " + P1Points + " points, Ai won.");
+            } else if (P1Points > aiPoints && P1Points == winPoints){
+                bestOfThreeWinnerText.setVisible(true);
+                bestOfThreeWinnerText.setText("Ai have " + aiPoints + " points, you have " + P1Points + " points, You won!!");
+            }
+        } else if (GameMode == 2 && bestOfThree) {
+            if (P2Points > P1Points && P2Points == winPoints) {
+                bestOfThreeWinnerText.setVisible(true);
+                bestOfThreeWinnerText.setText("Player 2 have " + P2Points + " points, Player 1 have " + P1Points + " points, Player 2 won!!");
+            } else if (P1Points > P2Points && P1Points == winPoints){
+                bestOfThreeWinnerText.setVisible(true);
+                bestOfThreeWinnerText.setText("Player 2 have " + P2Points + " points, Player 1 have " + P1Points + " points, Player 1 won!!");
+            }
         }
     }
     public static void main(String[] args) {
